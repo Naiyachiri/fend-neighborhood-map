@@ -1,9 +1,26 @@
 #map {
+  display: inline-block;
   height: 100vh; /*NOTE: the map requires an absolute size value; using % values will cause it to not render */
+  width: 70vw;
 }
 /* Optional: Makes the sample page fill the window. */
 html, body {
   height: 100vh;
   margin: 0;
   padding: 0;
+  width: 100vw;
+}
+
+#venue-list {
+  display: inline-block; 
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  width: 28vw;
+  text-align: left;
+  vertical-align: top;
+}
+
+#venue-list button {
+  width: 100%;
 }

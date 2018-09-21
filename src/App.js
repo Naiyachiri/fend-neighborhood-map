@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 
 import './App.css';
 
+import VenueList from './components/VenueList';
+
 // https://developers.google.com/maps/documentation/javascript/tutorial converted to react below
 class App extends Component {
 
@@ -27,12 +29,12 @@ class App extends Component {
       query: "coffee", //can be changed depending on if we add a query component to our app
       ll: "38.7916449,-77.119759", // just a locale near myself, but also can be customized
       intent: "browse",
-      radius: 1000, // in meters
+      radius: 10000, // in meters
       limit: 10, // set to 10, but can be changed as necessary
       v: "20180323" // this is the version given under 'getting started' of docs
     }
     //`${endPoint}client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&query=${parameters.query}&ll=${parameters.ll.lng},${parameters.ll.lat}&v=${parameters.v}`
-    fetch(`${endPoint}/venues/search?ll=${parameters.ll}&intent=${parameters.intent}&radius=${parameters.radius}&limit=${parameters.limit}&client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&v=${parameters.v}`)
+    fetch(`${endPoint}/venues/search?ll=${parameters.ll}&intent=${parameters.intent}&radius=${parameters.radius}&limit=${parameters.limit}&query=${parameters.query}&client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&v=${parameters.v}`)
     .then(res => res.json())
     .then(data => {
       //NOTE: SetState can take in a 2nd parameter, which is a callback that is run after the state has been set
@@ -51,7 +53,7 @@ class App extends Component {
     //initialize our map object
     let map = new window.google.maps.Map(document.getElementById('map'), {
       center: {lat: 38.7916449, lng: -77.119759},
-      zoom: 14
+      zoom: 10
     });
       
     //generate a single infoWindow
@@ -84,6 +86,7 @@ class App extends Component {
   render() {
     return (
       <main>
+        <VenueList locations={this.state.venues} />
         <div id="map"></div>
       </main>
     );
