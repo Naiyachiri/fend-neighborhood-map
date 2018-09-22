@@ -3,12 +3,19 @@ import React, { Component } from 'react';
 import './App.css';
 
 import VenueList from './components/VenueList';
+/* global google */
+
 
 // https://developers.google.com/maps/documentation/javascript/tutorial converted to react below
 class App extends Component {
 
   state = {
+    map: {},
+    infoWindow: {}, // reference to the infowindow for outside access
     venues: [], // contain our fetched venues
+    markerArray: [], // container for markers
+    markerWindowState: false,
+    currentMarkerIndex: -1 // state management to determine which marker is selected from list
   }
 
   componentDidMount() {
@@ -33,7 +40,7 @@ class App extends Component {
       limit: 10, // set to 10, but can be changed as necessary
       v: "20180323" // this is the version given under 'getting started' of docs
     }
-    //`${endPoint}client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&query=${parameters.query}&ll=${parameters.ll.lng},${parameters.ll.lat}&v=${parameters.v}`
+
     fetch(`${endPoint}/venues/search?ll=${parameters.ll}&intent=${parameters.intent}&radius=${parameters.radius}&limit=${parameters.limit}&query=${parameters.query}&client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&v=${parameters.v}`)
     .then(res => res.json())
     .then(data => {
@@ -46,7 +53,23 @@ class App extends Component {
       console.log("Error: "+ error);
     })
   }
-/// FOURSQUARE API RELATED FUNCTIONS /// FOURSQUARE API RELATED FUNCTIONS/// FOURSQUARE API 
+
+
+/// GOOGLE MAPS RELATED FUNCTIONS /// GOOGLE MAPS RELATED FUNCTIONS ////// GOOGLE 
+
+
+  //method allows us to determine which marker to use in our marker array for opening the info window
+  setCurrentMarker = (index) => {
+    this.setState({
+      currentMarkerIndex : index
+    })
+  }
+
+  //show infoWindow and populate its contents
+  showInfoWindow(marker) {
+    this.setContent(marker.contentString);
+    this.open(marker.map, marker);
+  }
 
   initMap = () => {
     // note that window.google is used here because it is necessary to generate it from the global environment
@@ -55,12 +78,13 @@ class App extends Component {
       center: {lat: 38.7916449, lng: -77.119759},
       zoom: 10
     });
-      
+    
     //generate a single infoWindow
     let infowindow = new window.google.maps.InfoWindow({
     });
 
     //this function below generates our markers and infoWindows based off of the loaded venues' data
+    let markers = []; // initialize an array to reference all generated markers
     this.state.venues.map((targetVenue => {
       //dynamically change the contentString based on venue
       let contentString= `<h5>${targetVenue.name}</h5>
@@ -71,22 +95,38 @@ class App extends Component {
       let marker = new window.google.maps.Marker({
         position: {lat: targetVenue.location.lat, lng: targetVenue.location.lng},
         map: map,
-        title: targetVenue.name
+        title: targetVenue.name,
+        contentString: contentString
       });
-      //add a listener to our marker
+
+       //add a listener to our marker
       marker.addListener('click', function() {
-        //update infowindow contents to clicked marker
-        infowindow.setContent(contentString)
-        //opens an infoWindow on the clicked marker  
+        infowindow.setContent(contentString);
         infowindow.open(map, marker);
       });
-    }))
+      // add marker to temporary array to store in state at a later time
+      markers.push(marker);
+    }
+    ))
+
+    // update the app state to include marker references
+    this.setState({
+      markerArray: markers,
+      infoWindow: infowindow 
+    },()=>{
+      console.log(this.state.markerArray); // do something after marker states are updated
+    })
   }
+
 
   render() {
     return (
       <main>
-        <VenueList locations={this.state.venues} />
+        <VenueList locations={this.state.venues} 
+          venueMarkers={this.state.markerArray}
+          changeMarkerIndex={this.setCurrentMarker}
+          openInfoWindow={this.showInfoWindow.bind(this.state.infoWindow)} // binding the infoWindow reference allows us to trigger the proper object methods
+          />
         <div id="map"></div>
       </main>
     );

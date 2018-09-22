@@ -19,6 +19,7 @@ html, body {
   width: 28vw;
   text-align: left;
   vertical-align: top;
+  overflow: scroll;
 }
 
 #venue-list button {
