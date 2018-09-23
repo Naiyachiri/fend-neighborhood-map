@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import './App.css';
 
 import VenueList from './components/VenueList';
-/* global google */
 
 
 // https://developers.google.com/maps/documentation/javascript/tutorial converted to react below
@@ -12,10 +11,11 @@ class App extends Component {
   state = {
     map: {},
     infoWindow: {}, // reference to the infowindow for outside access
-    venues: [], // contain our fetched venues
+    venues: [], // contain our current fetched venues
     markerArray: [], // container for markers
-    markerWindowState: false,
-    currentMarkerIndex: -1 // state management to determine which marker is selected from list
+    currentMarkerIndex: -1, // state management to determine which marker is selected from list
+    filteredVenues: [], // to store our queried venue array
+    query: "",
   }
 
   componentDidMount() {
@@ -28,6 +28,33 @@ class App extends Component {
   }
 
   /// FOURSQUARE API RELATED FUNCTIONS/// FOURSQUARE API RELATED FUNCTIONS/// FOURSQUARE API 
+  updateQuery = (query) => {
+    this.setState({
+      query: query
+    })
+  }
+
+  filterVenueArray = (query) => {
+    let filterResults = this.state.venues.filter((FilteredVenue) => {
+      let name = FilteredVenue.name.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
+      let regex = new RegExp(query);
+      //construct a regular expression based on query and compare it against the name
+      if (name.match(regex)) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    this.setState({
+      filteredVenues : this.state.venues,
+      venues: filterResults
+    },(()=> console.log(filterResults)))
+  }
+
+  restoreVenues = () => {
+
+  }
+
   getVenues = () => {
     const endPoint = 'https://api.foursquare.com/v2'; //the api url
     const parameters = {
@@ -35,9 +62,9 @@ class App extends Component {
       client_secret: "J35TCWD20UY10TYUR0RS2V5XQ0MJLFPBT02TJRK33425RVPP",
       query: "coffee", //can be changed depending on if we add a query component to our app
       ll: "38.7916449,-77.119759", // just a locale near myself, but also can be customized
-      intent: "browse",
+      intent: "browse", //  browse, match
       radius: 10000, // in meters
-      limit: 10, // set to 10, but can be changed as necessary
+      limit: 20, // limit of 50
       v: "20180323" // this is the version given under 'getting started' of docs
     }
 
@@ -46,7 +73,37 @@ class App extends Component {
     .then(data => {
       //NOTE: SetState can take in a 2nd parameter, which is a callback that is run after the state has been set
       this.setState({
-        venues: data.response.venues // pull data and store it in the app state
+        venues: data.response.venues, // pull data and store it in the app state
+        previousVenues: data.response.venues
+      },this.loadMap()) // note loadmap must wait until venues are loaded so that the markers can be made
+    })
+    .catch(error => {
+      console.log("Error: "+ error);
+    })
+  }
+
+  // using similar endpoint as getVenues we will now change intent to match instead
+  searchVenues = (query) => {
+    const endPoint = 'https://api.foursquare.com/v2'; //the api url
+    const parameters = {
+      client_id: "NRGQG3Z25DSMLYUKPTODJY1ZOQTI0NVONSZICDVVOLXTQ1MK",
+      client_secret: "J35TCWD20UY10TYUR0RS2V5XQ0MJLFPBT02TJRK33425RVPP",
+      query: query, //can be changed depending on if we add a query component to our app
+      ll: "38.7916449,-77.119759", // just a locale near myself, but also can be customized
+      intent: "match", //  browse, match
+      radius: 10000, // in meters
+      limit: 20, // limit of 50
+      v: "20180323" // this is the version given under 'getting started' of docs
+    }
+    
+//https://api.foursquare.com/v2/venues/search?ll=38.7916449,-77.119759&intent=search&radius=10000&limit=20&client_id=NRGQG3Z25DSMLYUKPTODJY1ZOQTI0NVONSZICDVVOLXTQ1MK&client_secret=J35TCWD20UY10TYUR0RS2V5XQ0MJLFPBT02TJRK33425RVPP&v=20180323&query=food
+
+    fetch(`${endPoint}/venues/search?ll=${parameters.ll}&intent=${parameters.intent}&radius=${parameters.radius}&limit=${parameters.limit}&query=${parameters.query}&client_id=${parameters.client_id}&client_secret=${parameters.client_secret}&v=${parameters.v}`)
+    .then(res => res.json())
+    .then(data => {
+      //NOTE: SetState can take in a 2nd parameter, which is a callback that is run after the state has been set
+      this.setState({
+        queryVenueArray: data.response.venues // pull data and store it in the app state
       },this.loadMap()) // note loadmap must wait until venues are loaded so that the markers can be made
     })
     .catch(error => {
@@ -78,14 +135,16 @@ class App extends Component {
       center: {lat: 38.7916449, lng: -77.119759},
       zoom: 10
     });
-    
+
+    let bounds = new window.google.maps.LatLngBounds(); 
+
     //generate a single infoWindow
     let infowindow = new window.google.maps.InfoWindow({
     });
 
     //this function below generates our markers and infoWindows based off of the loaded venues' data
     let markers = []; // initialize an array to reference all generated markers
-    this.state.venues.map((targetVenue => {
+    this.state.venues.map((targetVenue) => {
       //dynamically change the contentString based on venue
       let contentString= `<h5>${targetVenue.name}</h5>
       <p>${targetVenue.location.formattedAddress.join(', ')}</p>
@@ -106,8 +165,8 @@ class App extends Component {
       });
       // add marker to temporary array to store in state at a later time
       markers.push(marker);
-    }
-    ))
+      bounds.extend(marker.getPosition());
+    })
 
     // update the app state to include marker references
     this.setState({
@@ -116,6 +175,7 @@ class App extends Component {
     },()=>{
       console.log(this.state.markerArray); // do something after marker states are updated
     })
+    map.fitBounds(bounds); // fit map to markers
   }
 
 
@@ -126,6 +186,9 @@ class App extends Component {
           venueMarkers={this.state.markerArray}
           changeMarkerIndex={this.setCurrentMarker}
           openInfoWindow={this.showInfoWindow.bind(this.state.infoWindow)} // binding the infoWindow reference allows us to trigger the proper object methods
+          updateQuery={this.updateQuery}
+          filteredVenues={this.filteredVenues}
+          query={this.state.query}
           />
         <div id="map"></div>
       </main>

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-/* global google */
+import Search from './Search';
 
 class VenueList extends React.Component {
   static propTypes = {
@@ -15,18 +15,38 @@ class VenueList extends React.Component {
 
   }
 
+  
+
   render() {
     const { locations } = this.props;
     
+    // function that takes prop.locations and filters it according to our filter array
+      let filterResults = this.props.locations.filter((FilteredVenue) => {
+        let name = FilteredVenue.name.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
+        let regex = new RegExp(this.props.query);
+        //construct a regular expression based on query and compare it against the name
+        if (name.match(regex)) {
+          return true;
+        } else {
+          return false;
+        }
+      })
+
     return( 
       <div id="venue-list">
-        {locations.map((location, index) => (
-        <button className="venue-container" id={index} key={location.id} onClick={this.handleVenueClick}>
-        {location.name} <br></br>
-        Distance: {location.location.distance/1000} km <br></br>
-        {location.location.formattedAddress.join(", ")} <br></br>
-        </button>
-    ))}
+        <Search 
+          locations={this.props.locations}
+          updateQuery={this.props.updateQuery}
+          filteredVenues={filterResults}
+          query={this.props.query}
+        />
+          {filterResults.map((location, index) => (
+            <button className="venue-container" id={index} key={location.id} onClick={this.handleVenueClick}>
+              {location.name} <br></br>
+              Distance: {location.location.distance/1000} km <br></br>
+              {location.location.formattedAddress.join(", ")} <br></br>
+            </button>
+          ))}
       </div>
     )
   }
