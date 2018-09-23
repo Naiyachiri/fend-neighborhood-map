@@ -21,23 +21,23 @@ class VenueList extends React.Component {
     const { locations } = this.props;
     
     // function that takes prop.locations and filters it according to our filter array
-      let filterResults = locations.filter((FilteredVenue) => {
-        let name = FilteredVenue.name.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
-        let regex = new RegExp(this.props.query);
-        //construct a regular expression based on query and compare it against the name
-        if (name.match(regex)) {
-          return true;
-        } else {
-          return false;
-        }
-      })
+    let filterResults = locations.filter((FilteredVenue) => {
+      let name = FilteredVenue.name.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
+      let regex = new RegExp(this.props.query);
+      //construct a regular expression based on query and compare it against the name
+      if (name.match(regex)) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    
 
     return( 
       <div id="venue-list">
         <Search 
-          locations={this.props.locations}
+          locations={filterResults}
           updateQuery={this.props.updateQuery}
-          filteredVenues={filterResults}
           query={this.props.query}
         />
           {filterResults.map((location, index) => (

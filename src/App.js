@@ -9,12 +9,12 @@ import VenueList from './components/VenueList';
 class App extends Component {
 
   state = {
-    map: {},
+    map: {}, // once this is set to the global google map it can be passed to children who need access to the google map for methods/ references
     infoWindow: {}, // reference to the infowindow for outside access
     venues: [], // contain our current fetched venues
     markerArray: [], // container for markers
     currentMarkerIndex: -1, // state management to determine which marker is selected from list
-    filteredVenues: [], // to store our queried venue array
+    filteredMarkerRefs: [], // stores the filtered marker references
     query: "",
   }
 
@@ -31,7 +31,8 @@ class App extends Component {
   updateQuery = (query) => {
     this.setState({
       query: query
-    })
+    },(this.filterMarkers)
+    )
   }
 
   filterVenueArray = (query) => {
@@ -74,7 +75,6 @@ class App extends Component {
       //NOTE: SetState can take in a 2nd parameter, which is a callback that is run after the state has been set
       this.setState({
         venues: data.response.venues, // pull data and store it in the app state
-        previousVenues: data.response.venues
       },this.loadMap()) // note loadmap must wait until venues are loaded so that the markers can be made
     })
     .catch(error => {
@@ -128,6 +128,43 @@ class App extends Component {
     this.open(marker.map, marker);
   }
 
+  //remove marker from map
+  removeMarker = (Marker) => {
+    Marker.setMap(null);
+    //map is the refernce to window google maps
+  }
+
+  //add marker to map
+  showMarker = (Marker) => {
+    Marker.setMap(this.state.map); // note all markers reference their map through marker.map
+  }
+
+  filterMarkers = () => {
+    let filteredMarkerArray = this.state.markerArray.filter((FilteredMarker) => {
+      let name = FilteredMarker.filterProperty.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
+      let regex = new RegExp(this.state.query);
+      //construct a regular expression based on query and compare it against the name
+      if (name.match(regex)) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    console.log(filteredMarkerArray);
+    // use the filteredMarkerArray to iterate over markers to be shown, use the markerArray to set all the markers to null
+    this.state.markerArray.map((marker) => {
+      this.removeMarker(marker); // removes all markers from map
+      return true;
+    })
+
+    filteredMarkerArray.map((marker) => {
+      this.showMarker(marker); // reveals filtered markers
+      return true;
+    })
+    return true;
+  }
+
+
   initMap = () => {
     // note that window.google is used here because it is necessary to generate it from the global environment
     //initialize our map object
@@ -135,7 +172,7 @@ class App extends Component {
       center: {lat: 38.7916449, lng: -77.119759},
       zoom: 10
     });
-
+    this.setState({map:map}) // set reference to map in the app state
     let bounds = new window.google.maps.LatLngBounds(); 
 
     //generate a single infoWindow
@@ -155,7 +192,8 @@ class App extends Component {
         position: {lat: targetVenue.location.lat, lng: targetVenue.location.lng},
         map: map,
         title: targetVenue.name,
-        contentString: contentString
+        contentString: contentString,
+        filterProperty: targetVenue.name // this property allows us to filter the marker references for management
       });
 
        //add a listener to our marker
@@ -179,14 +217,18 @@ class App extends Component {
 
 
   render() {
+
+
     return (
       <main>
+        {/* <button className="debug" onClick={this.filterMarkers}>
+        test filter
+        </button> */}
         <VenueList locations={this.state.venues} 
           venueMarkers={this.state.markerArray}
           changeMarkerIndex={this.setCurrentMarker}
           openInfoWindow={this.showInfoWindow.bind(this.state.infoWindow)} // binding the infoWindow reference allows us to trigger the proper object methods
           updateQuery={this.updateQuery}
-          filteredVenues={this.filteredVenues}
           query={this.state.query}
           />
         <div id="map"></div>
