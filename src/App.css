@@ -23,5 +23,11 @@ html, body {
 }
 
 #venue-list button {
+  text-align: center;
+  width: 100%;
+}
+
+#filter-form input {
+  text-align: center;
   width: 100%;
 }
