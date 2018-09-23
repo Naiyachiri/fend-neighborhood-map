@@ -166,14 +166,13 @@ class App extends Component {
       // add marker to temporary array to store in state at a later time
       markers.push(marker);
       bounds.extend(marker.getPosition());
+      return true;
     })
 
     // update the app state to include marker references
     this.setState({
       markerArray: markers,
       infoWindow: infowindow 
-    },()=>{
-      console.log(this.state.markerArray); // do something after marker states are updated
     })
     map.fitBounds(bounds); // fit map to markers
   }

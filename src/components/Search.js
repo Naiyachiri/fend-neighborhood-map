@@ -1,7 +1,5 @@
 import React from 'react';
 
-import Suggestions from './Suggestions';
-
 class Search extends React.Component {
   state = {
     query: this.props.query,
@@ -21,7 +19,7 @@ class Search extends React.Component {
     return (
       <form id="filter-form" onSubmit={this.handleQuerySubmit}>
         <input
-          placeholder="filter for..."
+          placeholder="filter by Name"
           ref={input => this.search = input}
           onChange={this.handleInputChange}
         />
