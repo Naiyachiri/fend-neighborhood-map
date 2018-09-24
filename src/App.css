@@ -31,3 +31,16 @@ html, body {
   text-align: center;
   width: 100%;
 }
+
+.venue-container {
+  display: inline-block;
+  min-width: 20%;
+  text-align: center;
+  cursor: pointer
+}
+
+button.active {
+  color: #fff;
+  background-color:black;
+  font-weight:bold;
+}
