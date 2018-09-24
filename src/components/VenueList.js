@@ -7,11 +7,12 @@ let previousButton; // initialize variable to track the button
 
 class VenueList extends React.Component {
   static propTypes = {
-    locations: PropTypes.array.isRequired // must have passed the venue array
+    locations: PropTypes.array.isRequired, // must have passed the venue array
+    openInfoWindow: PropTypes.func.isRequired
   }
+
   // note the prop this.prop.handleVenueClick needs to be passed in in order to trigger the infoWindow to be opened
-  
-  
+    
 
   handleVenueClick = (event) => {
     this.props.openInfoWindow(this.props.venueMarkers[event.target.id])

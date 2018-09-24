@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import './App.css';
+import './responsive.css'
 
 import VenueList from './components/VenueList';
 
@@ -17,6 +18,8 @@ class App extends Component {
     filteredMarkerRefs: [], // stores the filtered marker references
     query: "",
   }
+
+  previouslySelectedMarker = undefined; // initialze marker tracking for the animation (could be converted to a state if it needs to be passed, but not necessary)
 
   componentDidMount() {
     this.getVenues(); // fetch foursquare data, note it is asynchronous
@@ -35,7 +38,7 @@ class App extends Component {
     )
   }
 
-  filterVenueArray = (query) => {
+  filterVenueArray = (query) => { // filters the list of items on the left hand of app
     let filterResults = this.state.venues.filter((FilteredVenue) => {
       let name = FilteredVenue.name.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
       let regex = new RegExp(query);
@@ -52,9 +55,7 @@ class App extends Component {
     },(()=> console.log(filterResults)))
   }
 
-  restoreVenues = () => {
 
-  }
 
   getVenues = () => {
     const endPoint = 'https://api.foursquare.com/v2'; //the api url
@@ -114,7 +115,7 @@ class App extends Component {
 
 /// GOOGLE MAPS RELATED FUNCTIONS /// GOOGLE MAPS RELATED FUNCTIONS ////// GOOGLE 
 
-
+  //MARKER RELATED FUNCTIONS
   //method allows us to determine which marker to use in our marker array for opening the info window
   setCurrentMarker = (index) => {
     this.setState({
@@ -139,7 +140,19 @@ class App extends Component {
     Marker.setMap(this.state.map); // note all markers reference their map through marker.map
   }
 
-  filterMarkers = () => {
+// ADD ANIMATION TO selected marker
+//   toggleBounce = (marker) => {
+//     console.log('bouncing animation');
+//     if (this.previouslySelectedMarker.getAnimation() !== null) {
+//       marker.setAnimation(null); // turn off animation if marker is animated
+//     }
+//     if (this.previouslySelectedMarker !== marker) {
+//       this.previouslySelectedMarker = marker; // store marker as previous for reference
+//     }
+//   marker.setAnimation(window.google.maps.Animation.BOUNCE);// animate the selected marker
+// }
+
+  filterMarkers = () => { // filters actual map markers to hide/show
     let filteredMarkerArray = this.state.markerArray.filter((FilteredMarker) => {
       let name = FilteredMarker.filterProperty.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
       let regex = new RegExp(this.state.query);
@@ -150,7 +163,7 @@ class App extends Component {
         return false;
       }
     })
-    console.log(filteredMarkerArray);
+
     // use the filteredMarkerArray to iterate over markers to be shown, use the markerArray to set all the markers to null
     this.state.markerArray.map((marker) => {
       this.removeMarker(marker); // removes all markers from map
@@ -161,9 +174,8 @@ class App extends Component {
       this.showMarker(marker); // reveals filtered markers
       return true;
     })
-    return true;
+    return filteredMarkerArray;
   }
-
 
   initMap = () => {
     // note that window.google is used here because it is necessary to generate it from the global environment
@@ -197,9 +209,10 @@ class App extends Component {
       });
 
        //add a listener to our marker
+       
       marker.addListener('click', function() {
         infowindow.setContent(contentString);
-        infowindow.open(map, marker);
+        infowindow.open(map, marker); 
       });
       // add marker to temporary array to store in state at a later time
       markers.push(marker);
@@ -217,7 +230,17 @@ class App extends Component {
 
 
   render() {
-
+    // filter the array based on our query before passing it down to our child componenents
+    let filteredMarkerArray = this.state.markerArray.filter((FilteredMarker) => {
+      let name = FilteredMarker.filterProperty.toLowerCase(); // convert it to lowercase so we can use regex to match against venue names
+      let regex = new RegExp(this.state.query);
+      //construct a regular expression based on query and compare it against the name
+      if (name.match(regex)) {
+        return true;
+      } else {
+        return false;
+      }
+    })
 
     return (
       <main>
@@ -225,7 +248,7 @@ class App extends Component {
         test filter
         </button> */}
         <VenueList locations={this.state.venues} 
-          venueMarkers={this.state.markerArray}
+          venueMarkers={filteredMarkerArray}
           changeMarkerIndex={this.setCurrentMarker}
           openInfoWindow={this.showInfoWindow.bind(this.state.infoWindow)} // binding the infoWindow reference allows us to trigger the proper object methods
           updateQuery={this.updateQuery}
