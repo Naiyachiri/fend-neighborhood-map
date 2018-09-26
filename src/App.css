@@ -1,17 +1,22 @@
-#map {
+.map-container {
   display: inline-block;
+}
+
+#map {
   height: 100vh; /*NOTE: the map requires an absolute size value; using % values will cause it to not render */
   width: 70vw;
+  z-index: 0;
 }
 /* Optional: Makes the sample page fill the window. */
-html, body {
+html, body, main {
   height: 100vh;
   margin: 0;
   padding: 0;
   width: 100vw;
+  background: black;
 }
 
-#venue-list {
+.venue-list {
   display: inline-block; 
   height: 100vh;
   margin: 0;
@@ -20,11 +25,25 @@ html, body {
   text-align: left;
   vertical-align: top;
   overflow: scroll;
+  z-index: 1;
+}
+
+.open {
+  transform: translate( 0px, 0);
+  transition: transform 0.3s ease;
+  z-index: 5;
+}
+
+.venue-container {
+  display: inline-block;
+  min-width: 20%;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
 }
 
 #venue-list button {
   text-align: center;
-  width: 100%;
 }
 
 #filter-form input {
@@ -32,15 +51,16 @@ html, body {
   width: 100%;
 }
 
-.venue-container {
-  display: inline-block;
-  min-width: 20%;
-  text-align: center;
-  cursor: pointer
-}
-
 button.active {
   color: #fff;
   background-color:black;
   font-weight:bold;
+}
+
+.info-window {
+  max-width: 80vw;
+}
+
+.menu {
+  display: none;
 }

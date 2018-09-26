@@ -5,6 +5,7 @@ import './responsive.css'
 
 import VenueList from './components/VenueList';
 
+const switchIcon = require('./icons/switch-screen-icon.svg');
 
 // https://developers.google.com/maps/documentation/javascript/tutorial converted to react below
 class App extends Component {
@@ -15,6 +16,7 @@ class App extends Component {
     venues: [], // contain our current fetched venues
     markerArray: [], // container for markers
     currentMarkerIndex: -1, // state management to determine which marker is selected from list
+    previouslySelectedMarker: {}, // initialize the state to track markers
     filteredMarkerRefs: [], // stores the filtered marker references
     query: "",
   }
@@ -23,6 +25,16 @@ class App extends Component {
 
   componentDidMount() {
     this.getVenues(); // fetch foursquare data, note it is asynchronous
+  }
+
+  //method which will add css classes that act like hamburger menus
+  toggleMapMenu = () => {
+    let venueList = document.querySelector('.venue-list');
+    let mapContainer = document.querySelector('.map-container');
+    let menuIcon = document.querySelector('.menu');
+    venueList.classList.toggle('close-filter');
+    mapContainer.classList.toggle('open-map');
+    menuIcon.classList.toggle('map-open-menu');
   }
 
   loadMap = () => {
@@ -54,8 +66,6 @@ class App extends Component {
       venues: filterResults
     },(()=> console.log(filterResults)))
   }
-
-
 
   getVenues = () => {
     const endPoint = 'https://api.foursquare.com/v2'; //the api url
@@ -124,7 +134,7 @@ class App extends Component {
   }
 
   //show infoWindow and populate its contents
-  showInfoWindow(marker) {
+  showInfoWindow(marker) { // takes a marker ref object
     this.setContent(marker.contentString);
     this.open(marker.map, marker);
   }
@@ -140,17 +150,25 @@ class App extends Component {
     Marker.setMap(this.state.map); // note all markers reference their map through marker.map
   }
 
-// ADD ANIMATION TO selected marker
-//   toggleBounce = (marker) => {
-//     console.log('bouncing animation');
-//     if (this.previouslySelectedMarker.getAnimation() !== null) {
-//       marker.setAnimation(null); // turn off animation if marker is animated
-//     }
-//     if (this.previouslySelectedMarker !== marker) {
-//       this.previouslySelectedMarker = marker; // store marker as previous for reference
-//     }
-//   marker.setAnimation(window.google.maps.Animation.BOUNCE);// animate the selected marker
-// }
+// TODO: ADD ANIMATION TO selected marker
+  // toggleBounce = () => { // take marker run animation method
+  //   // if previous marker does not exist, animate current marker
+  //   //if previous marker does exist, deanimate, animate current
+  //   //this.state.filteredMarkerRefs[this.state.currentMarkerIndex] this is the selected marker's ref
+  //   // previouslySelectedMarker is the state tracking the previous filtered marker's ref
+  //   // method to animate marker .setAnimation(window.google.maps.Animation.BOUNCE) // deactiv: .setAnimation(null)
+  //   console.log(this);
+  //   console.log(this.state.filteredMarkerRefs[this.state.currentMarkerIndex]);
+  //   if (this.previouslySelectedMarker === {}) { // if there is not a previous marker// its an empty object
+  //     this.state.filteredMarkerRefs[this.state.currentMarkerIndex].setAnimation(window.google.maps.Animation.BOUNCE);
+  //     this.previouslySelectedMarker = this.state.filteredMarkerRefs[this.state.currentMarkerIndex]  // store marker for next call 
+  //   } else {
+  //     this.previouslySelectedMarker.setAnimation(null); // stop previous marker's animation
+  //     this.state.filteredMarkerRefs[this.state.currentMarkerIndex].setAnimation(window.google.maps.Animation.BOUNCE); // animate current marker
+  //     this.previouslySelectedMarker = this.state.filteredMarkerRefs[this.state.currentMarkerIndex] // store marker for next method call
+  //   }
+//  }
+// method works but when put into the marker's click listener or the filter list item on click it fails
 
   filterMarkers = () => { // filters actual map markers to hide/show
     let filteredMarkerArray = this.state.markerArray.filter((FilteredMarker) => {
@@ -174,6 +192,7 @@ class App extends Component {
       this.showMarker(marker); // reveals filtered markers
       return true;
     })
+    this.setState({filteredMarkerRefs:filteredMarkerArray})
     return filteredMarkerArray;
   }
 
@@ -195,8 +214,8 @@ class App extends Component {
     let markers = []; // initialize an array to reference all generated markers
     this.state.venues.map((targetVenue) => {
       //dynamically change the contentString based on venue
-      let contentString= `<h5>${targetVenue.name}</h5>
-      <p>${targetVenue.location.formattedAddress.join(', ')}</p>
+      let contentString= `<div class="info-window"><h5>${targetVenue.name}</h5>
+      <p>${targetVenue.location.formattedAddress.join(', ')}</p></div>
       `;
       
       //generate dynamic markers
@@ -223,7 +242,8 @@ class App extends Component {
     // update the app state to include marker references
     this.setState({
       markerArray: markers,
-      infoWindow: infowindow 
+      infoWindow: infowindow,
+      filteredMarkerRefs: markers
     })
     map.fitBounds(bounds); // fit map to markers
   }
@@ -244,17 +264,18 @@ class App extends Component {
 
     return (
       <main>
-        {/* <button className="debug" onClick={this.filterMarkers}>
-        test filter
-        </button> */}
+        <span className="menu" onClick={this.toggleMapMenu}> <img src={switchIcon} alt="button to swap between google map and venues menu"/> </span>
         <VenueList locations={this.state.venues} 
           venueMarkers={filteredMarkerArray}
           changeMarkerIndex={this.setCurrentMarker}
           openInfoWindow={this.showInfoWindow.bind(this.state.infoWindow)} // binding the infoWindow reference allows us to trigger the proper object methods
+          toggleBounce={this.toggleBounce}
           updateQuery={this.updateQuery}
           query={this.state.query}
           />
-        <div id="map"></div>
+        <div className="map-container">
+          <div id="map"></div>
+        </div>
       </main>
     );
   }

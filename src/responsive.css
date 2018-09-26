@@ -1,0 +1,42 @@
+@media screen and (max-width: 500px) {
+  .menu {
+    display: block;
+    position: absolute;
+    min-height: 40px;
+    min-width: 40px;
+    z-index: 9;
+    text-align: center;
+    justify-content: center;
+    color: white;
+    top: 6px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.38);
+    border-radius: 50%;
+  }
+  .menu img {
+    padding-top: 4px;
+  }
+
+  .venue-list {
+    width: 100vw;
+  }
+  
+  .close-filter {
+    transform: translate(-100vw, 0);
+    transition: transform 0.5s ease;
+  }
+
+  .map-container {
+    position: absolute;
+    top: 0;
+  }
+  
+  #map {
+    width: 100vw;
+  }
+  
+  .open-map {
+    transform: translate(-100vw, 0);
+    transition: transform 0.5s ease;
+  }
+}

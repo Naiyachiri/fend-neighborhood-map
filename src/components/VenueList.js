@@ -15,24 +15,17 @@ class VenueList extends React.Component {
     
 
   handleVenueClick = (event) => {
-    this.props.openInfoWindow(this.props.venueMarkers[event.target.id])
+    this.props.openInfoWindow(this.props.venueMarkers[event.target.id]);
     this.props.changeMarkerIndex(event.target.id); // updates state to reflect selected venue item index
-
       //simple onclick based css modifications in response to onClick events
       if (previousButton !== undefined) { // if the previousButton exists
         previousButton.classList.remove('active'); // toggle the active class on the previous button
       }
-
       //note since the ids are also used to as an index value they must be escaped  to be used as css id selectors with '\3', note \ must be escaped as well
-
       // after further research the CSS.escape(string) method can be used instead
-
       previousButton = document.querySelector('#'+CSS.escape(event.target.id)); // set previous button to current button
       previousButton.classList.add('active'); // toggle the active class on the button
   }
-    
-
-  
 
   render() {
     const { locations } = this.props;
@@ -51,7 +44,7 @@ class VenueList extends React.Component {
     
 
     return( 
-      <div id="venue-list">
+      <div className="venue-list">
         <Search 
           locations={filterResults}
           updateQuery={this.props.updateQuery}
