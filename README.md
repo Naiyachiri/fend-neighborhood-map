@@ -18,3 +18,4 @@
 
 add animations for selected map markers
 give info window contents more style
+break down application into smaller components
