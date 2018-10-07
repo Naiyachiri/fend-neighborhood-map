@@ -8,10 +8,16 @@
     "react-dom": "^16.5.2",
     "react-scripts": "1.1.5"
   },
+  "homepage": "https://naiyachiri.github.io/fend-neighborhood-map",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "gh-pages": "^2.0.1"
   }
 }
